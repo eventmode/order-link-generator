@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HMAC Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+        label, input, button {
+            margin-bottom: 10px;
+        }
+        #result {
+            margin-top: 20px;
+            word-break: break-all;
+        }
+        #copyButton {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Order Link Generator</h1>
+    <form id="hmacForm">
+        <label for="secretKey">secretKey:</label>
+        <input type="text" id="secretKey" required>
+        
+        <label for="value">Order Number:</label>
+        <input type="text" id="value" required>
+        
+        <button type="submit">Generate Link</button>
+    </form>
+    <div id="result"></div>
+    <button id="copyButton" style="display: none;">Copy Link</button>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script>
+        const form = document.getElementById('hmacForm');
+        const resultDiv = document.getElementById('result');
+        const copyButton = document.getElementById('copyButton');
+
+        function generateHMAC(value, secretKey) {
+            const hmac = CryptoJS.HmacSHA256(value, secretKey);
+            return hmac.toString(CryptoJS.enc.Hex);
+        }
+
+        function generateLink(orderNumber, hmac) {
+            return `eventmode.com/checkout/success?order_number=${orderNumber}&order_number_hash=${hmac}`;
+        }
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const secretKey = document.getElementById('secretKey').value;
+            const orderNumber = document.getElementById('value').value;
+            
+            const hmac = generateHMAC(orderNumber, secretKey);
+            const link = generateLink(orderNumber, hmac);
+            resultDiv.innerHTML = `<strong>Generated Link:</strong><br>${link}`;
+            copyButton.style.display = 'block';
+        });
+
+        copyButton.addEventListener('click', function() {
+            const linkText = resultDiv.textContent.split(': ')[1];
+            navigator.clipboard.writeText(linkText).then(() => {
+                alert('Link copied to clipboard!');
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+            });
+        });
+    </script>
+</body>
+</html>
